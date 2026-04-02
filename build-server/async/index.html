@@ -9,7 +9,7 @@
 
       (function loadVwoScript(id) {
         var s = document.createElement('script');
-        s.src = 'https://dev.visualwebsiteoptimizer.com/cloud-run-test/final/' + id + '.js';
+        s.src = 'https://dev.visualwebsiteoptimizer.com/build-server/' + id + '.js';
         s.referrerPolicy = 'no-referrer-when-downgrade';
         s.id = 'vwoCode';
         document.head.appendChild(s);
@@ -101,7 +101,7 @@ VWO.push(['onVariationApplied', function (data) {
 	
   </head>
 <body>
-    <h1 id="registration-heading" style="text-align: center">HEADING</h1>
+    <h1 id="registration-heading" style="text-align: center">Registration Form</h1>
 	<div id="parentDiv">
   <p id="childP">Hello, Let's Check it!</p>
   <button class="childButton" onClick="handleClick()">
