@@ -2,19 +2,20 @@
   <head>
     <!-- VWO sync smartcode 3.0 -->
     <script type="text/javascript">
-      const params = new URLSearchParams(window.location.search);
-      const accId = parseInt(params.get("id"));
-      const accountId = accId || 1120758;
-      console.log("Account-Id ->", accountId);
+      // const params = new URLSearchParams(window.location.search);
+      // const accId = parseInt(params.get("id"));
+      // const accountId = accId || 1120758;
+      // console.log("Account-Id ->", accountId);
 
-      (function loadVwoScript(id) {
-        var s = document.createElement('script');
-        s.src = 'https://dev.visualwebsiteoptimizer.com/cloud-run-test/final/' + id + '.js';
-        s.referrerPolicy = 'no-referrer-when-downgrade';
-        s.id = 'vwoCode';
-        document.head.appendChild(s);
-      })(accountId);
+      // (function loadVwoScript(id) {
+      //   var s = document.createElement('script');
+      //   s.src = 'https://dev.visualwebsiteoptimizer.com/cloud-run-test/final/' + id + '.js';
+      //   s.referrerPolicy = 'no-referrer-when-downgrade';
+      //   s.id = 'vwoCode';
+      //   document.head.appendChild(s);
+      // })(accountId);
     </script> 
+	<script src="https://dev.visualwebsiteoptimizer.com/lib/30000380.js" referrerpolicy="no-referrer-when-downgrade" id="vwoCode"></script> 
 	<script>
 	  document.addEventListener('abtasty_resetActionTracking',(e)=>{console.log(e, "abtasty_resetActionTracking")});
 	  window.addEventListener('abtasty_consentValid',(e)=>{console.log(e, "abtasty_consentValid")});
