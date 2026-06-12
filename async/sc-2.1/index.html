@@ -4,13 +4,14 @@
     <script type="text/javascript" id="vwoCode">
       const params = new URLSearchParams(window.location.search);
       const accId = parseInt(params.get("id"));
+	  const s = parseInt(params.get("s");
       const accountId = accId || 1120758;
       console.log("Account-Id ->", accountId);
       /* eslint-disable no-undef */
       window._vwo_code || (function() {
       var account_id=accountId,
       version=2.1,
-      settings_tolerance=2000,
+      settings_tolerance= s || 2000,
       hide_element='body',
       hide_element_style = 'opacity:0 !important;filter:alpha(opacity=0) !important;background:none !important',
       /* DO NOT EDIT BELOW THIS LINE */
