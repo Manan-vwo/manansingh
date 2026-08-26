@@ -114,88 +114,118 @@ VWO.push(['onVariationApplied', function (data) {
   <a id="childLink" href="https://www.google.com/">Visit Google.Com</a>
 </div>
 
-    <!-- Shadow DOM test hosts (populated after delay) -->
+    <!-- Real Shadow DOM via custom elements — mounted after delay -->
     <div id="shadow-dom-section" style="margin: 24px 0; padding: 16px; border: 2px dashed #333;">
       <h2 id="shadow-section-heading">Shadow DOM Elements (delayed)</h2>
       <p id="shadow-section-note">
-        Hosts exist on load; open shadow roots attach after
-        <span id="shadow-delay-ms">3000</span>ms.
+        Custom elements with open shadow roots are inserted after
+        <span id="shadow-delay-ms">3000</span>ms. Content IDs are only inside shadowRoot.
       </p>
-      <p id="shadow-delay-status">Waiting to attach shadow DOM...</p>
-      <div id="shadow-host-1"></div>
-      <div id="shadow-host-2" style="margin-top: 12px;"></div>
-      <div id="shadow-host-nested" style="margin-top: 12px;"></div>
+      <p id="shadow-delay-status">Waiting to mount shadow custom elements...</p>
+      <p id="shadow-query-proof" style="font-family: monospace; font-size: 13px;"></p>
+      <div id="shadow-mount"></div>
     </div>
     <script>
       (function initShadowDomDelayed() {
         var DELAY_MS = 3000;
         var statusEl = document.getElementById("shadow-delay-status");
         var delayLabel = document.getElementById("shadow-delay-ms");
+        var mount = document.getElementById("shadow-mount");
+        var proof = document.getElementById("shadow-query-proof");
         if (delayLabel) delayLabel.textContent = String(DELAY_MS);
 
-        function fillShadow(host, html) {
-          var root = host.attachShadow({ mode: "open" });
-          root.innerHTML = html;
-          return root;
+        function registerShadowCustomElements() {
+          if (customElements.get("vwo-shadow-card")) return;
+
+          class VwoShadowCard extends HTMLElement {
+            connectedCallback() {
+              if (this.shadowRoot) return;
+              var variant = this.getAttribute("variant") || "1";
+              var root = this.attachShadow({ mode: "open" });
+              if (variant === "2") {
+                root.innerHTML = [
+                  "<style>",
+                  "  :host { display: block; padding: 12px; background: #eef8f0; border: 1px solid #6a9; }",
+                  "</style>",
+                  '<p id="shadow-para-2">Second shadow root content (delayed)</p>',
+                  '<button id="shadow-btn-2" type="button" class="shadow-button-2">Shadow Button 2</button>',
+                  '<span id="shadow-span" class="shadow-label">Shadow label</span>'
+                ].join("");
+              } else {
+                root.innerHTML = [
+                  "<style>",
+                  "  :host { display: block; padding: 12px; background: #f0f4f8; border: 1px solid #99a; }",
+                  "  #shadow-heading { margin: 0 0 8px; font-size: 18px; }",
+                  "  #shadow-para { margin: 0 0 8px; }",
+                  "  #shadow-btn { padding: 8px 16px; cursor: pointer; }",
+                  "  #shadow-link { display: inline-block; margin-left: 8px; }",
+                  "</style>",
+                  '<h3 id="shadow-heading">Shadow Host 1 Heading (delayed)</h3>',
+                  '<p id="shadow-para">Text inside open shadow root #1 (loaded after delay)</p>',
+                  '<button id="shadow-btn" type="button" class="shadow-button">Shadow Click Me</button>',
+                  '<a id="shadow-link" href="https://www.google.com/">Shadow Link</a>',
+                  '<input id="shadow-input" type="text" placeholder="Shadow input" />'
+                ].join("");
+              }
+            }
+          }
+
+          class VwoShadowInner extends HTMLElement {
+            connectedCallback() {
+              if (this.shadowRoot) return;
+              var root = this.attachShadow({ mode: "open" });
+              root.innerHTML = [
+                "<style>",
+                "  :host { display: block; margin-top: 8px; padding: 8px; background: #fff; border: 1px dashed #a96; }",
+                "</style>",
+                '<p id="inner-shadow-para">Nested inner shadow root (delayed)</p>',
+                '<button id="inner-shadow-btn" type="button">Inner Shadow Button</button>'
+              ].join("");
+            }
+          }
+
+          class VwoShadowNested extends HTMLElement {
+            connectedCallback() {
+              if (this.shadowRoot) return;
+              var root = this.attachShadow({ mode: "open" });
+              root.innerHTML = [
+                "<style>",
+                "  :host { display: block; padding: 12px; background: #f8f0ee; border: 1px solid #a96; }",
+                "</style>",
+                '<p id="outer-shadow-para">Outer shadow root (delayed)</p>',
+                "<vwo-shadow-inner></vwo-shadow-inner>"
+              ].join("");
+            }
+          }
+
+          customElements.define("vwo-shadow-inner", VwoShadowInner);
+          customElements.define("vwo-shadow-card", VwoShadowCard);
+          customElements.define("vwo-shadow-nested", VwoShadowNested);
         }
 
-        function attachAllShadows() {
-          fillShadow(
-            document.getElementById("shadow-host-1"),
-            [
-              '<style>',
-              '  :host { display: block; padding: 12px; background: #f0f4f8; border: 1px solid #99a; }',
-              '  #shadow-heading { margin: 0 0 8px; font-size: 18px; }',
-              '  #shadow-para { margin: 0 0 8px; }',
-              '  #shadow-btn { padding: 8px 16px; cursor: pointer; }',
-              '  #shadow-link { display: inline-block; margin-left: 8px; }',
-              '</style>',
-              '<h3 id="shadow-heading">Shadow Host 1 Heading (delayed)</h3>',
-              '<p id="shadow-para">Text inside open shadow root #1 (loaded after delay)</p>',
-              '<button id="shadow-btn" type="button" class="shadow-button">Shadow Click Me</button>',
-              '<a id="shadow-link" href="https://www.google.com/">Shadow Link</a>',
-              '<input id="shadow-input" type="text" placeholder="Shadow input" />'
-            ].join("")
-          );
+        function mountShadowElements() {
+          registerShadowCustomElements();
+          mount.innerHTML = [
+            '<vwo-shadow-card id="shadow-host-1" variant="1"></vwo-shadow-card>',
+            '<vwo-shadow-card id="shadow-host-2" variant="2" style="margin-top: 12px;"></vwo-shadow-card>',
+            '<vwo-shadow-nested id="shadow-host-nested" style="margin-top: 12px;"></vwo-shadow-nested>'
+          ].join("");
 
-          fillShadow(
-            document.getElementById("shadow-host-2"),
-            [
-              '<style>',
-              '  :host { display: block; padding: 12px; background: #eef8f0; border: 1px solid #6a9; }',
-              '</style>',
-              '<p id="shadow-para-2">Second shadow root content (delayed)</p>',
-              '<button id="shadow-btn-2" type="button" class="shadow-button-2">Shadow Button 2</button>',
-              '<span id="shadow-span" class="shadow-label">Shadow label</span>'
-            ].join("")
-          );
-
-          var nestedHost = document.getElementById("shadow-host-nested");
-          var outer = fillShadow(
-            nestedHost,
-            [
-              '<style>',
-              '  :host { display: block; padding: 12px; background: #f8f0ee; border: 1px solid #a96; }',
-              '</style>',
-              '<p id="outer-shadow-para">Outer shadow root (delayed)</p>',
-              '<div id="inner-shadow-host"></div>'
-            ].join("")
-          );
-          var innerHost = outer.getElementById("inner-shadow-host");
-          fillShadow(
-            innerHost,
-            [
-              '<p id="inner-shadow-para">Nested inner shadow root (delayed)</p>',
-              '<button id="inner-shadow-btn" type="button">Inner Shadow Button</button>'
-            ].join("")
-          );
-
-          if (statusEl) statusEl.textContent = "Shadow DOM attached after " + DELAY_MS + "ms";
-          console.log("Shadow DOM initialized (delayed " + DELAY_MS + "ms)");
+          var host1 = document.getElementById("shadow-host-1");
+          var lightFind = document.querySelector("#shadow-btn");
+          var shadowFind = host1 && host1.shadowRoot && host1.shadowRoot.querySelector("#shadow-btn");
+          var msg =
+            "document.querySelector('#shadow-btn') => " +
+            lightFind +
+            " | host.shadowRoot.querySelector('#shadow-btn') => " +
+            (shadowFind ? shadowFind.tagName + "#" + shadowFind.id : null);
+          if (proof) proof.textContent = msg;
+          if (statusEl) statusEl.textContent = "Shadow custom elements mounted after " + DELAY_MS + "ms";
+          console.log("Shadow DOM initialized (delayed " + DELAY_MS + "ms):", msg);
         }
 
-        console.log("Shadow DOM will attach in " + DELAY_MS + "ms");
-        setTimeout(attachAllShadows, DELAY_MS);
+        console.log("Shadow custom elements will mount in " + DELAY_MS + "ms");
+        setTimeout(mountShadowElements, DELAY_MS);
       })();
     </script>
     <div class="div1">
