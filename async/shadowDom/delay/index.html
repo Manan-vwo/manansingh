@@ -1,5 +1,6 @@
 <html>
   <head>
+    <!-- "#shadow-host-nested >> #inner-shadow-host >> #inner-shadow-para" -->
     <!-- VWO async smartcode 3.0 -->
     <script type="text/javascript">
       const params = new URLSearchParams(window.location.search);
@@ -17,7 +18,7 @@
       'opacity:0 !important;filter:alpha(opacity=0) !important;background:none !important;transition:none !important';
 
       /* DO NOT EDIT BELOW THIS LINE */
-      var t=window,n=document;if(-1<n.URL.indexOf('__vwo_disable__')||t._vwo_code)return;var i=!1,o=n.currentScript,e={sT:settings_tolerance,hES:hide_element_style,hE:hide_element};try{e=Object.assign(JSON.parse(localStorage.getItem('_vwo_'+account_id+'_config')),e)}catch(e){}code={nonce:o&&o.nonce,settings_tolerance:function(){return e.sT},hide_element:function(){return performance.getEntriesByName('first-contentful-paint')[0]?'':e.hE},hide_element_style:function(){return'{'+e.hES+'}'},getVersion:function(){return version},finish:function(){var e;i||(i=!0,(e=n.getElementById('_vis_opt_path_hides'))&&e.parentNode&&e.parentNode.removeChild(e))},finished:function(){return i},addScript:function(e){var t=n.createElement('script');t.type='text/javascript',t.src=e,o&&o.nonce&&t.setAttribute('nonce',o.nonce),n.getElementsByTagName('head')[0].appendChild(t)},init:function(){t._vwo_settings_timer=setTimeout(function(){code.finish()},this.settings_tolerance());var e=n.createElement('style');e.setAttribute('id','_vis_opt_path_hides'),e.type='text/css',code&&code.nonce&&e.setAttribute('nonce',code.nonce),e.appendChild(n.createTextNode(this.hide_element()+this.hide_element_style())),n.head.appendChild(e),this.addScript('https://dev.visualwebsiteoptimizer.com/tag/'+account_id+'.js')}},t._vwo_code=code;code.init();})();
+      var t=window,n=document;if(-1<n.URL.indexOf('__vwo_disable__')||t._vwo_code)return;var i=!1,o=n.currentScript,e={sT:settings_tolerance,hES:hide_element_style,hE:hide_element};try{e=Object.assign(JSON.parse(localStorage.getItem('_vwo_'+account_id+'_config')),e)}catch(e){}code={nonce:o&&o.nonce,settings_tolerance:function(){return e.sT},hide_element:function(){return performance.getEntriesByName('first-contentful-paint')[0]?'':e.hE},hide_element_style:function(){return'{'+e.hES+'}'},getVersion:function(){return version},finish:function(){var e;i||(i=!0,(e=n.getElementById('_vis_opt_path_hides'))&&e.parentNode&&e.parentNode.removeChild(e))},finished:function(){return i},addScript:function(e){var t=n.createElement('script');t.type='text/javascript',t.src=e,o&&o.nonce&&t.setAttribute('nonce',o.nonce),n.getElementsByTagName('head')[0].appendChild(t)},init:function(){t._vwo_settings_timer=setTimeout(function(){code.finish()},this.settings_tolerance());var e=n.createElement('style');e.setAttribute('id','_vis_opt_path_hides'),e.type='text/css',code&&code.nonce&&e.setAttribute('nonce',code.nonce),e.appendChild(n.createTextNode(this.hide_element()+this.hide_element_style())),n.head.appendChild(e),this.addScript('https://dev.visualwebsiteoptimizer.com/tags/'+account_id+'.js')}},t._vwo_code=code;code.init();})();
     </script>
 	<script>
 	  document.addEventListener('abtasty_resetActionTracking',(e)=>{console.log(e, "abtasty_resetActionTracking")});
@@ -114,123 +115,73 @@ VWO.push(['onVariationApplied', function (data) {
   <a id="childLink" href="https://www.google.com/">Visit Google.Com</a>
 </div>
 
-    <!-- Empty until delay; then section host mounts with ALL content in shadowRoot -->
-    <div id="shadow-mount"></div>
+    <!--
+      Shadow chunk test. Light DOM in this section is static after first paint.
+      Do not mutate light DOM after attachShadow — core's observer watches the
+      document and would retry applyChanges, hiding whether the shadow chunk is needed.
+      Previous nested test leaked: statusEl.textContent after attach woke core MO.
+    -->
+    <div id="shadow-dom-section" style="margin: 24px 0; padding: 16px; border: 2px dashed #333;">
+      <h2 id="shadow-section-heading">Shadow DOM chunk tests (no light-DOM mutations after load)</h2>
+      <p>
+        Case A late root (4s): <code>#shadow-host-late-root &gt;&gt; #shadow-section-note</code><br />
+        Case B nested late roots (4s): <code>#shadow-host-nested &gt;&gt; #inner-shadow-host &gt;&gt; #inner-shadow-para</code><br />
+        Case C late element inside existing root (7s): <code>#shadow-host-late-el &gt;&gt; #shadow-section-note-dynamic</code>
+      </p>
+      <div id="shadow-host-late-root"></div>
+      <div id="shadow-host-nested" style="margin-top: 12px;"></div>
+      <div id="shadow-host-late-el" style="margin-top: 12px;"></div>
+    </div>
     <script>
-      (function initShadowDomDelayed() {
-        var DELAY_MS = 3000;
+      (function initShadowDomChunkTests() {
+        var LATE_ROOT_MS = 4000;
+        var LATE_EL_MS = 7000;
 
-        function registerShadowCustomElements() {
-          if (customElements.get("vwo-shadow-section")) return;
-
-          class VwoShadowInner extends HTMLElement {
-            connectedCallback() {
-              if (this.shadowRoot) return;
-              var root = this.attachShadow({ mode: "open" });
-              root.innerHTML = [
-                "<style>",
-                "  :host { display: block; margin-top: 8px; padding: 8px; background: #fff; border: 1px dashed #a96; }",
-                "</style>",
-                '<p id="inner-shadow-para">Nested inner shadow root (delayed)</p>',
-                '<button id="inner-shadow-btn" type="button">Inner Shadow Button</button>'
-              ].join("");
-            }
-          }
-
-          class VwoShadowCard extends HTMLElement {
-            connectedCallback() {
-              if (this.shadowRoot) return;
-              var variant = this.getAttribute("variant") || "1";
-              var root = this.attachShadow({ mode: "open" });
-              if (variant === "2") {
-                root.innerHTML = [
-                  "<style>",
-                  "  :host { display: block; margin-top: 12px; padding: 12px; background: #eef8f0; border: 1px solid #6a9; }",
-                  "</style>",
-                  '<p id="shadow-para-2">Second shadow root content (delayed)</p>',
-                  '<button id="shadow-btn-2" type="button" class="shadow-button-2">Shadow Button 2</button>',
-                  '<span id="shadow-span" class="shadow-label">Shadow label</span>'
-                ].join("");
-              } else {
-                root.innerHTML = [
-                  "<style>",
-                  "  :host { display: block; margin-top: 12px; padding: 12px; background: #f0f4f8; border: 1px solid #99a; }",
-                  "  #shadow-heading { margin: 0 0 8px; font-size: 18px; }",
-                  "  #shadow-para { margin: 0 0 8px; }",
-                  "  #shadow-btn { padding: 8px 16px; cursor: pointer; }",
-                  "  #shadow-link { display: inline-block; margin-left: 8px; }",
-                  "</style>",
-                  '<h3 id="shadow-heading">Shadow Host 1 Heading (delayed)</h3>',
-                  '<p id="shadow-para">Text inside open shadow root #1 (loaded after delay)</p>',
-                  '<button id="shadow-btn" type="button" class="shadow-button">Shadow Click Me</button>',
-                  '<a id="shadow-link" href="https://www.google.com/">Shadow Link</a>',
-                  '<input id="shadow-input" type="text" placeholder="Shadow input" />'
-                ].join("");
-              }
-            }
-          }
-
-          class VwoShadowNested extends HTMLElement {
-            connectedCallback() {
-              if (this.shadowRoot) return;
-              var root = this.attachShadow({ mode: "open" });
-              root.innerHTML = [
-                "<style>",
-                "  :host { display: block; margin-top: 12px; padding: 12px; background: #f8f0ee; border: 1px solid #a96; }",
-                "</style>",
-                '<p id="outer-shadow-para">Outer shadow root (delayed)</p>',
-                "<vwo-shadow-inner></vwo-shadow-inner>"
-              ].join("");
-            }
-          }
-
-          class VwoShadowSection extends HTMLElement {
-            connectedCallback() {
-              if (this.shadowRoot) return;
-              var root = this.attachShadow({ mode: "open" });
-              root.innerHTML = [
-                "<style>",
-                "  :host { display: block; margin: 24px 0; padding: 16px; border: 2px dashed #333; }",
-                "  #shadow-section-heading { margin: 0 0 8px; }",
-                "  #shadow-section-note { margin: 0 0 8px; }",
-                "  #shadow-query-proof { font-family: monospace; font-size: 13px; }",
-                "</style>",
-                '<h2 id="shadow-section-heading">Shadow DOM Elements (delayed)</h2>',
-                '<p id="shadow-section-note">All of this content (including this note) lives inside an open shadow root, mounted after ' +
-                  DELAY_MS +
-                  "ms.</p>",
-                '<p id="shadow-delay-status">Shadow section mounted after ' + DELAY_MS + "ms</p>",
-                '<p id="shadow-query-proof"></p>',
-                '<vwo-shadow-card id="shadow-host-1" variant="1"></vwo-shadow-card>',
-                '<vwo-shadow-card id="shadow-host-2" variant="2"></vwo-shadow-card>',
-                "<vwo-shadow-nested id=\"shadow-host-nested\"></vwo-shadow-nested>"
-              ].join("");
-
-              var proof = root.getElementById("shadow-query-proof");
-              var noteLight = document.querySelector("#shadow-section-note");
-              var noteShadow = root.querySelector("#shadow-section-note");
-              var msg =
-                "document.querySelector('#shadow-section-note') => " +
-                noteLight +
-                " | section.shadowRoot.querySelector('#shadow-section-note') => " +
-                (noteShadow ? noteShadow.tagName + "#" + noteShadow.id : null);
-              if (proof) proof.textContent = msg;
-              console.log("Shadow section ready (delayed):", msg);
-            }
-          }
-
-          customElements.define("vwo-shadow-inner", VwoShadowInner);
-          customElements.define("vwo-shadow-card", VwoShadowCard);
-          customElements.define("vwo-shadow-nested", VwoShadowNested);
-          customElements.define("vwo-shadow-section", VwoShadowSection);
+        function fillShadow(host, html) {
+          var root = host.attachShadow({ mode: "open" });
+          root.innerHTML = html;
+          return root;
         }
 
-        console.log("Shadow section will mount in " + DELAY_MS + "ms");
-        setTimeout(function () {
-          registerShadowCustomElements();
-          document.getElementById("shadow-mount").innerHTML =
-            '<vwo-shadow-section id="shadow-dom-section" data-mode="delayed"></vwo-shadow-section>';
-        }, DELAY_MS);
+        // Case C: root exists before VWO apply; target node is injected later inside the shadow only.
+        var lateElHost = document.getElementById("shadow-host-late-el");
+        var lateElRoot = lateElHost.attachShadow({ mode: "open" });
+        lateElRoot.innerHTML = [
+          "<style>:host { display: block; padding: 12px; background: #eef8f0; border: 1px solid #6a9; }</style>",
+          "<p id=\"late-el-placeholder\">Existing open shadow root. Target is not here yet.</p>"
+        ].join("");
+
+        setTimeout(function attachLateRoots() {
+          fillShadow(
+            document.getElementById("shadow-host-late-root"),
+            [
+              "<style>:host { display: block; padding: 12px; background: #f0f4f8; border: 1px solid #99a; }</style>",
+              "<p id=\"shadow-section-note\">Late shadow ROOT via attachShadow (no light-DOM mutation)</p>"
+            ].join("")
+          );
+
+          var outer = fillShadow(
+            document.getElementById("shadow-host-nested"),
+            [
+              "<style>:host { display: block; padding: 12px; background: #f8f0ee; border: 1px solid #a96; }</style>",
+              "<p id=\"outer-shadow-para\">Outer shadow root (late)</p>",
+              "<div id=\"inner-shadow-host\"></div>"
+            ].join("")
+          );
+          fillShadow(
+            outer.getElementById("inner-shadow-host"),
+            "<p id=\"inner-shadow-para\">Nested inner shadow root (late, no light-DOM mutation)</p>"
+          );
+          console.log("[shadow-test] late roots attached (case A + nested)");
+        }, LATE_ROOT_MS);
+
+        setTimeout(function injectLateElement() {
+          var note = document.createElement("p");
+          note.id = "shadow-section-note-dynamic";
+          note.textContent = "Late ELEMENT injected inside an already-open shadow root";
+          lateElRoot.appendChild(note);
+          console.log("[shadow-test] late element injected inside existing root (case C)");
+        }, LATE_EL_MS);
       })();
     </script>
     <div class="div1">
