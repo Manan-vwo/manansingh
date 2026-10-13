@@ -1,5 +1,12 @@
 <html>
   <head>
+	<script>
+    var c = new URLSearchParams(location.search).get('case');
+    if (c === 'before') window.qaFlag = true;             // true before DOM ready
+    if (c === 'after') window.addEventListener('load', function () {
+      setTimeout(function () { window.qaFlag = true; }, 2000); // true ~2 s after DOM ready
+    });
+  </script>
     <!-- VWO async smartcode 3.0 -->
     <script type="text/javascript">
       const params = new URLSearchParams(window.location.search);
